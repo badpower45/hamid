@@ -8,9 +8,7 @@ import { Button } from './components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from './components/ui/table';
 import { Trash2, Plus, Save, Newspaper, Video, FileText, Users, Ticket, Lightbulb, Home, Shield, Briefcase, User2, Mail } from 'lucide-react';
 import { toast } from 'sonner@2.0.3';
-import { projectId, publicAnonKey } from './utils/supabase/info';
-
-const API_URL = `https://${projectId}.supabase.co/functions/v1/make-server-1fccac55`;
+import { supabase } from './utils/supabase/client';
 
 export default function AdminPage() {
   const [loading, setLoading] = useState(false);
@@ -316,32 +314,44 @@ export default function AdminPage() {
 
   // Forms Data Functions
   const fetchVolunteers = async () => {
-    const response = await fetch(`${API_URL}/volunteers`, {
-      headers: { Authorization: `Bearer ${publicAnonKey}` },
-    });
-    const data = await response.json();
-    if (data.success) {
-      setVolunteers(data.volunteers);
+    try {
+      const { data, error } = await supabase
+        .from('volunteers')
+        .select('*')
+        .order('created_at', { ascending: false });
+      
+      if (error) throw error;
+      setVolunteers(data || []);
+    } catch (error) {
+      console.error('Error fetching volunteers:', error);
     }
   };
 
   const fetchTickets = async () => {
-    const response = await fetch(`${API_URL}/tickets`, {
-      headers: { Authorization: `Bearer ${publicAnonKey}` },
-    });
-    const data = await response.json();
-    if (data.success) {
-      setTickets(data.tickets);
+    try {
+      const { data, error } = await supabase
+        .from('tickets')
+        .select('*')
+        .order('created_at', { ascending: false });
+      
+      if (error) throw error;
+      setTickets(data || []);
+    } catch (error) {
+      console.error('Error fetching tickets:', error);
     }
   };
 
   const fetchIdeas = async () => {
-    const response = await fetch(`${API_URL}/ideas`, {
-      headers: { Authorization: `Bearer ${publicAnonKey}` },
-    });
-    const data = await response.json();
-    if (data.success) {
-      setIdeas(data.ideas);
+    try {
+      const { data, error } = await supabase
+        .from('ideas')
+        .select('*')
+        .order('created_at', { ascending: false });
+      
+      if (error) throw error;
+      setIdeas(data || []);
+    } catch (error) {
+      console.error('Error fetching ideas:', error);
     }
   };
 

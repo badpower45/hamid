@@ -9,9 +9,7 @@ import { Button } from './ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
 import { toast } from 'sonner@2.0.3';
 import { motion } from 'motion/react';
-import { projectId, publicAnonKey } from '../utils/supabase/info';
-
-const API_URL = `https://${projectId}.supabase.co/functions/v1/make-server-1fccac55`;
+import { supabase } from '../utils/supabase/client';
 
 export default function ContactSection() {
   const [volunteerForm, setVolunteerForm] = useState({
@@ -37,21 +35,21 @@ export default function ContactSection() {
   const handleVolunteerSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      const response = await fetch(`${API_URL}/volunteers`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${publicAnonKey}`,
-        },
-        body: JSON.stringify(volunteerForm),
-      });
-      const data = await response.json();
-      if (data.success) {
-        toast.success('تسلم! هنكلمك قريب جداً ♥️');
-        setVolunteerForm({ name: '', phone: '', district: '', area: '' });
-      } else {
-        toast.error('حدث خطأ، حاول مرة تانية');
-      }
+      const { data, error } = await supabase
+        .from('volunteers')
+        .insert([{
+          name: volunteerForm.name,
+          phone: volunteerForm.phone,
+          district: volunteerForm.district,
+          area: volunteerForm.area,
+          created_at: new Date().toISOString()
+        }])
+        .select();
+
+      if (error) throw error;
+
+      toast.success('تسلم! هنكلمك قريب جداً ♥️');
+      setVolunteerForm({ name: '', phone: '', district: '', area: '' });
     } catch (error) {
       console.error('Error submitting volunteer form:', error);
       toast.error('حدث خطأ، حاول مرة تانية');
@@ -61,21 +59,25 @@ export default function ContactSection() {
   const handleTicketSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      const response = await fetch(`${API_URL}/tickets`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${publicAnonKey}`,
-        },
-        body: JSON.stringify(ticketForm),
-      });
-      const data = await response.json();
-      if (data.success) {
-        toast.success(`تم! رقم شكواك: ${data.ticket.ticketNumber} - هنرد عليك خلال 48 ساعة`);
-        setTicketForm({ name: '', district: '', problemType: '', details: '' });
-      } else {
-        toast.error('حدث خطأ، حاول مرة تانية');
-      }
+      const ticketNumber = `T${Date.now().toString().slice(-8)}`;
+      
+      const { data, error } = await supabase
+        .from('tickets')
+        .insert([{
+          name: ticketForm.name,
+          district: ticketForm.district,
+          problem_type: ticketForm.problemType,
+          details: ticketForm.details,
+          ticket_number: ticketNumber,
+          status: 'pending',
+          created_at: new Date().toISOString()
+        }])
+        .select();
+
+      if (error) throw error;
+
+      toast.success(`تم! رقم شكواك: ${ticketNumber} - هنرد عليك خلال 48 ساعة`);
+      setTicketForm({ name: '', district: '', problemType: '', details: '' });
     } catch (error) {
       console.error('Error submitting ticket:', error);
       toast.error('حدث خطأ، حاول مرة تانية');
@@ -85,21 +87,20 @@ export default function ContactSection() {
   const handleIdeaSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      const response = await fetch(`${API_URL}/ideas`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${publicAnonKey}`,
-        },
-        body: JSON.stringify(ideaForm),
-      });
-      const data = await response.json();
-      if (data.success) {
-        toast.success('فكرة جامدة! شكراً ليك، هندرسها وهنتواصل معاك');
-        setIdeaForm({ name: '', idea: '', implementation: '' });
-      } else {
-        toast.error('حدث خطأ، حاول مرة تانية');
-      }
+      const { data, error } = await supabase
+        .from('ideas')
+        .insert([{
+          name: ideaForm.name,
+          idea: ideaForm.idea,
+          implementation: ideaForm.implementation,
+          created_at: new Date().toISOString()
+        }])
+        .select();
+
+      if (error) throw error;
+
+      toast.success('فكرة جامدة! شكراً ليك، هندرسها وهنتواصل معاك');
+      setIdeaForm({ name: '', idea: '', implementation: '' });
     } catch (error) {
       console.error('Error submitting idea:', error);
       toast.error('حدث خطأ، حاول مرة تانية');
