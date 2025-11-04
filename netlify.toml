@@ -7,4 +7,7 @@
   from = "/*"
   to = "/index.html"
   status = 200
-  force = true
+  # NOTE: 'force = true' rewrites ALL requests to index.html even if the file exists.
+  # That breaks module/script loading (returns HTML instead of JS). Keep this redirect
+  # without 'force' so Netlify serves real files when present and only falls back to
+  # index.html for unmatched client-side routes.
