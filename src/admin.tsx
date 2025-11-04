@@ -14,6 +14,18 @@ const API_URL = `https://${projectId}.supabase.co/functions/v1/make-server-1fcca
 
 export default function AdminPage() {
   const [loading, setLoading] = useState(false);
+  // Simple client-side password gate (quick solution as requested)
+  const [password, setPassword] = useState('');
+  const [authenticated, setAuthenticated] = useState(false);
+
+  useEffect(() => {
+    try {
+      const v = localStorage.getItem('admin_auth');
+      if (v === '1') setAuthenticated(true);
+    } catch (e) {
+      // ignore server-side
+    }
+  }, []);
   
   // Site Content
   const [siteContent, setSiteContent] = useState({
@@ -337,6 +349,50 @@ export default function AdminPage() {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-xl">جاري التحميل...</div>
+      </div>
+    );
+  }
+  // If not authenticated, show password prompt
+  if (!authenticated) {
+    return (
+      <div className="min-h-screen flex items-center justify-center" dir="rtl">
+        <div className="w-full max-w-md bg-white p-6 rounded shadow">
+          <h2 className="text-xl mb-4">تسجيل دخول لوحة التحكم</h2>
+          <p className="text-sm text-gray-600 mb-4">ادخل كلمة المرور للدخول</p>
+          <input
+            type="password"
+            className="w-full border px-3 py-2 rounded mb-3"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            placeholder="كلمة المرور"
+          />
+          <div className="flex gap-2">
+            <Button
+              onClick={() => {
+                // Quick insecure check as requested
+                if (password === '13572468852') {
+                  try {
+                    localStorage.setItem('admin_auth', '1');
+                  } catch (e) {}
+                  setAuthenticated(true);
+                } else {
+                  toast.error('كلمة المرور غير صحيحة');
+                }
+              }}
+            >
+              دخول
+            </Button>
+            <Button
+              variant="ghost"
+              onClick={() => {
+                setPassword('');
+              }}
+            >
+              مسح
+            </Button>
+          </div>
+          <p className="mt-3 text-xs text-gray-500">ملاحظة: هذا تحقق على جهة العميل فقط. أنصح بإعداد تحقق على الخادم لزيادة الأمان.</p>
+        </div>
       </div>
     );
   }
